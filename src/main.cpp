@@ -2,16 +2,15 @@
 #include <Arduino.h>
 #include "WiFi.h"
 #include "PubSubClient.h"
-
 #define PIN_LED 25 // Pino usado no ESP-32
 
 #define TOPICO_SUBSCRIBE_LED "topico_liga_desliga_led" // Nome do Topico, pode ser qualquer nome
 #define ID_MQTT "esp32_mqtt" // ID do seu MQTT
 
 const char* SSID = "Nome_Rede_Wifi";
-const char* PASSWORD = "sua_senha";
+const char* PASSWORD = "Senha_Wifi";
 
-const char* BROKER_MQTT = "Endereço do MQTT Broker";
+const char* BROKER_MQTT = "IP_Broker";
 int BROKER_PORT = 1883;//porta_do_broker
    
 WiFiClient espClient;
@@ -65,7 +64,6 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length)
         delay(9000);
         digitalWrite(PIN_LED, LOW);
     }
-  
 }
  
 /* Função: reconecta-se ao broker MQTT */
