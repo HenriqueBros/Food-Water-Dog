@@ -1,5 +1,9 @@
 // Bibliotecas nescessarias
 #include <Arduino.h>
+//  Teste codigo
+#include <time.h>
+#include <iostream>
+// -----------
 #include "WiFi.h"
 #include "PubSubClient.h"
 #define PIN_LED 25 // Pino usado no ESP-32
@@ -7,8 +11,10 @@
 #define TOPICO_SUBSCRIBE_LED "topico_liga_desliga_led" // Nome do Topico, pode ser qualquer nome
 #define ID_MQTT "esp32_mqtt" // ID do seu MQTT
 
-const char* SSID = "Nome_Rede_Wifi";
-const char* PASSWORD = "Senha_Wifi";
+using namespace std;
+
+const char* SSID = "Nome_Wifi";
+const char* PASSWORD = "Senha";
 
 const char* BROKER_MQTT = "IP_Broker";
 int BROKER_PORT = 1883;//porta_do_broker
@@ -41,29 +47,47 @@ void initMQTT(void)
     MQTT.setServer(BROKER_MQTT, BROKER_PORT); //informa qual broker e porta deve ser conectado
     MQTT.setCallback(mqtt_callback); //atribui função de callback (função chamada quando qualquer informação de um dos tópicos subescritos chega)
 }
- 
+
 /* Função: função de callback */
 void mqtt_callback(char* topic, byte* payload, unsigned int length) 
 {
     String msg;
-  
+
+    time_t timer;
+    struct tm *timeinfo;
+
+    time(&timer);
+    timeinfo = localtime(&timer);
+
+    int hora = timeinfo->tm_hour;
+    int minutos = timeinfo->tm_min;
+
     /* obtem a string do payload recebido */
-    for(int i = 0; i < length; i++) 
+    for(int i = 0; i < length; i++)
     {
        char c = (char)payload[i];
        msg += c;
     }
  
+
     Serial.print("Chegou a seguinte mensagem via MQTT: ");
     Serial.println(msg);
+    Serial.print("\n");
     
-    if (msg.equals("1"))
-    {
+    if (msg.equals("1")) {
         digitalWrite(PIN_LED, HIGH);
-        Serial.print("LED aceso mediante comando MQTT");
+        Serial.println("LED aceso mediante comando MQTT \n");
         delay(9000);
         digitalWrite(PIN_LED, LOW);
-    }
+        Serial.println("LED apagou, passou 9 segundos \n");
+    };
+    
+    if ((hora==7 && minutos==0) || (hora==19 && minutos==37)) {
+        digitalWrite(PIN_LED, HIGH);
+        Serial.println("acendeu pq deu a hora");
+        delay(9000);
+        digitalWrite(PIN_LED, LOW);
+    };
 }
  
 /* Função: reconecta-se ao broker MQTT */
