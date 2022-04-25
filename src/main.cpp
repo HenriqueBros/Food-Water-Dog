@@ -1,9 +1,8 @@
 // Bibliotecas nescessarias
 #include <Arduino.h>
-//  Teste codigo
-#include <time.h>
+#include <stdio.h>
 #include <iostream>
-// -----------
+#include <NTPClient.h>
 #include "WiFi.h"
 #include "PubSubClient.h"
 #define PIN_LED 25 // Pino usado no ESP-32
@@ -13,10 +12,10 @@
 
 using namespace std;
 
-const char* SSID = "Nome_Wifi";
-const char* PASSWORD = "Senha";
+const char* SSID = "Nome da rede wifi";
+const char* PASSWORD = "Senha da rede wifi";
 
-const char* BROKER_MQTT = "IP_Broker";
+const char* BROKER_MQTT = "IP do Servidor";
 int BROKER_PORT = 1883;//porta_do_broker
    
 WiFiClient espClient;
@@ -53,22 +52,12 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length)
 {
     String msg;
 
-    time_t timer;
-    struct tm *timeinfo;
-
-    time(&timer);
-    timeinfo = localtime(&timer);
-
-    int hora = timeinfo->tm_hour;
-    int minutos = timeinfo->tm_min;
-
     /* obtem a string do payload recebido */
     for(int i = 0; i < length; i++)
     {
        char c = (char)payload[i];
        msg += c;
     }
- 
 
     Serial.print("Chegou a seguinte mensagem via MQTT: ");
     Serial.println(msg);
@@ -82,12 +71,7 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length)
         Serial.println("LED apagou, passou 9 segundos \n");
     };
     
-    if ((hora==7 && minutos==0) || (hora==19 && minutos==37)) {
-        digitalWrite(PIN_LED, HIGH);
-        Serial.println("acendeu pq deu a hora");
-        delay(9000);
-        digitalWrite(PIN_LED, LOW);
-    };
+   
 }
  
 /* Função: reconecta-se ao broker MQTT */
@@ -141,6 +125,24 @@ void reconnectWiFi(void)
     Serial.println(WiFi.localIP());
 }
 
+void ligaHora(void) {
+    WiFiUDP ntpUDP;
+    NTPClient timeClient(ntpUDP, "a.st1.ntp.br", -3 * 3600, 6000);
+    int horas = timeClient.getHours();
+    int minutos = timeClient.getMinutes()+ 10;
+
+    Serial.printf("\nHora: %i ", horas);
+    Serial.printf("\nMinutos: %i ", minutos);
+
+    if ((horas == 3 && minutos == 40)) {
+        digitalWrite(PIN_LED, HIGH);
+        Serial.println("\nAcendeu");
+        delay(9000);
+        digitalWrite(PIN_LED, LOW);
+        delay(60000);
+    };
+
+}
 
 //----------------------
 void setup() {
@@ -158,5 +160,7 @@ void loop() {
     VerificaConexoesWiFIEMQTT();
 
     MQTT.loop();
+    ligaHora();
+    
     delay(2000);
 }
