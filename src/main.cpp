@@ -141,7 +141,6 @@ void ligaHora(void) {
         digitalWrite(PIN_LED, LOW);
         delay(60000);
     };
-
 }
 
 //----------------------
